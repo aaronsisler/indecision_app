@@ -1,32 +1,55 @@
-//Wrapper
-const fireConsole = () => {
-    return function (target) {
-        setState(() => ({ thing: Date.now() }));
-    }
-}
-
-const log = (target, name, descriptor) => {
+const addPageLoadTimeStampToState = (target, name, descriptor) => {
     var oldValue = descriptor.value;
     descriptor.value = function (...args) {
-        console.log(this.state);
-        //this.changeState();
-        this.setState(() => ({ thing: "taco" }));
-        this.setState({tabTimeStamp: Date.now()});
-        console.log(`Calling "${name}"`);
+        this.setState({ pageTimeStamp: Date.now() });
+        console.log(`Method called: ${name}`)
         return oldValue.apply(null, arguments);
     };
 
     return descriptor;
 }
 
-const logWithParams = (thing) => {
+const addButtonClickTimeStampToState = (target, name, descriptor) => {
+    var oldValue = descriptor.value;
+    descriptor.value = function (...args) {
+        this.setState({ buttonClickStartTimeStamp: Date.now() });
+        console.log(`Method called: ${name}`)
+        return oldValue.apply(null, arguments);
+    };
+
+    return descriptor;
+}
+
+const calculateTimeBetweenButtonClicks = (target, name, descriptor) => {
+    var oldValue = descriptor.value;
+    descriptor.value = function (...args) {
+        const timeBetween = Date.now() - this.state.buttonClickStartTimeStamp;
+        this.setState({ timeBetweenButtonClicks: timeBetween });
+        console.log(`Method called: ${name}`)
+        return oldValue.apply(null, arguments);
+    };
+
+    return descriptor;
+}
+
+const calculateTimeBetweenPageLoadAndButtonClick = (target, name, descriptor) => {
+    var oldValue = descriptor.value;
+    descriptor.value = function (...args) {
+        const timeBetween = Date.now() - this.state.pageTimeStamp;
+        this.setState({ timeBetweenPageLoadAndButtonClick: timeBetween });
+        console.log(`Method called: ${name}`)
+        return oldValue.apply(null, arguments);
+    };
+
+    return descriptor;
+}
+
+const fireWithParams = (thing) => {
     return function (target, name, descriptor) {
         var oldValue = descriptor.value;
         descriptor.value = function (...args) {
-            console.log(thing);
-            const stateThing = target.returnState();
-            console.log(stateThing);
-            console.log(`Calling "${name}"`);
+            this.setState({ paramThing: thing });
+            console.log(`Method called: ${name}`)
             return oldValue.apply(null, arguments);
         };
 
@@ -34,9 +57,10 @@ const logWithParams = (thing) => {
     }
 }
 
-
 export {
-    fireConsole,
-    log,
-    logWithParams
+    addPageLoadTimeStampToState,
+    addButtonClickTimeStampToState,
+    calculateTimeBetweenButtonClicks,
+    calculateTimeBetweenPageLoadAndButtonClick,
+    fireWithParams
 };
